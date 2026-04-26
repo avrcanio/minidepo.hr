@@ -1,7 +1,7 @@
 # minidepo.hr
 
 <p align="center">
-  <img src="minidepo%20logo.png" alt="minidepo.hr logo" width="220">
+  <img src="minidepologo.png" alt="minidepo.hr logo" width="220">
 </p>
 
 `minidepo.hr` je interni operativni sustav za planiranje i upravljanje self-storage lokacijom s kontejnerima. Projekt je razvijen kao `GeoDjango` aplikacija spojena na postojeći shared Docker `postgis` container i služi za prostorno upravljanje parcelama, kontejnerima, pristupnim putevima i ulazima.
