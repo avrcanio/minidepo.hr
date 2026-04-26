@@ -14,6 +14,13 @@ def _geometry_to_dict(geometry):
     return json.loads(geometry.geojson)
 
 
+def _buffered_road_geometry(road):
+    geometry = road.geometry.transform(3765, clone=True)
+    buffered = geometry.buffer(float(road.width_m) / 2.0)
+    buffered.transform(4326)
+    return _geometry_to_dict(buffered)
+
+
 def _site_payload(site):
     center = None
     if site.center:
@@ -71,6 +78,7 @@ def _access_road_payload(road):
         "width_m": str(road.width_m),
         "notes": road.notes,
         "geometry": _geometry_to_dict(road.geometry),
+        "display_geometry": _buffered_road_geometry(road),
     }
 
 

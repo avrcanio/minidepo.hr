@@ -18,15 +18,6 @@ body {
   color: var(--ink);
 }
 
-.leaflet-container {
-  font: inherit;
-}
-
-.leaflet-draw-toolbar a,
-.leaflet-control-layers-toggle {
-  border-radius: 10px;
-}
-
 .layout {
   display: grid;
   grid-template-columns: 360px 1fr;
@@ -111,6 +102,12 @@ button:hover {
   padding: 18px 24px;
 }
 
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 #status-pill {
   display: inline-flex;
   padding: 8px 14px;
@@ -126,6 +123,20 @@ button:hover {
   font-weight: 700;
 }
 
+.lock-button {
+  width: auto;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #cbbfa8;
+  color: var(--ink);
+}
+
+.lock-button.is-locked {
+  background: #1f2933;
+  color: #ffffff;
+}
+
 #map {
   flex: 1;
   min-height: 600px;
@@ -139,6 +150,34 @@ button:hover {
 .muted {
   color: #667085;
   font-size: 14px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summary-card {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #fffdf8, #f4ecdc);
+}
+
+.summary-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+  line-height: 1;
+}
+
+.summary-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--olive);
+  font-weight: 700;
 }
 
 .unit-card {

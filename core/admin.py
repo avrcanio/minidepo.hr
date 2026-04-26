@@ -1,18 +1,26 @@
 from django.contrib import admin
-from django.contrib.gis.admin import GISModelAdmin
 
+from .admin_widgets import (
+    AccessRoadAdminForm,
+    ContainerAdminForm,
+    GateAdminForm,
+    ParcelAdminForm,
+    SiteAdminForm,
+)
 from .models import AccessRoad, Container, ContainerUnit, Gate, Parcel, Site
 
 
 @admin.register(Site)
-class SiteAdmin(GISModelAdmin):
+class SiteAdmin(admin.ModelAdmin):
+    form = SiteAdminForm
     list_display = ("name", "slug", "is_active")
     list_filter = ("is_active",)
     search_fields = ("name", "slug", "address")
 
 
 @admin.register(Parcel)
-class ParcelAdmin(GISModelAdmin):
+class ParcelAdmin(admin.ModelAdmin):
+    form = ParcelAdminForm
     list_display = ("code", "site", "is_active")
     list_filter = ("site", "is_active")
     search_fields = ("code", "site__name")
@@ -24,7 +32,8 @@ class ContainerUnitInline(admin.TabularInline):
 
 
 @admin.register(Container)
-class ContainerAdmin(GISModelAdmin):
+class ContainerAdmin(admin.ModelAdmin):
+    form = ContainerAdminForm
     list_display = ("code", "parcel", "derived_status", "size_label")
     list_filter = ("parcel__site", "parcel")
     search_fields = ("code", "parcel__code", "parcel__site__name")
@@ -39,14 +48,16 @@ class ContainerUnitAdmin(admin.ModelAdmin):
 
 
 @admin.register(AccessRoad)
-class AccessRoadAdmin(GISModelAdmin):
+class AccessRoadAdmin(admin.ModelAdmin):
+    form = AccessRoadAdminForm
     list_display = ("code", "site", "width_m")
     list_filter = ("site",)
     search_fields = ("code", "site__name")
 
 
 @admin.register(Gate)
-class GateAdmin(GISModelAdmin):
+class GateAdmin(admin.ModelAdmin):
+    form = GateAdminForm
     list_display = ("code", "site", "gate_type")
     list_filter = ("site", "gate_type")
     search_fields = ("code", "site__name")

@@ -1,0 +1,7 @@
+<div class="leaflet-geometry-widget" data-geom-type="{{ widget.geometry_type|default:'' }}">
+  <div class="leaflet-geometry-map" id="{{ widget.attrs.id }}_map"></div>
+  <details class="leaflet-geometry-raw">
+    <summary>GeoJSON</summary>
+    <textarea name="{{ widget.name }}"{% include "django/forms/widgets/attrs.html" %}>{{ widget.value|stringformat:'s' }}</textarea>
+  </details>
+</div>

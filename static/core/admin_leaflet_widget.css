@@ -1,0 +1,23 @@
+.leaflet-geometry-widget {
+  min-width: 720px;
+}
+
+.leaflet-geometry-map {
+  height: 420px;
+  margin-bottom: 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.leaflet-geometry-raw summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.leaflet-geometry-raw textarea {
+  width: 100%;
+  min-height: 120px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
