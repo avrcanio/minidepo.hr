@@ -11,3 +11,8 @@
 - Zadrži izmjene usko vezane uz korisnički zahtjev.
 - Ne diraj nepovezane fajlove ili postojeće lokalne promjene.
 - Ako mijenjaš ponašanje aplikacije, kratko navedi kako je promjena provjerena.
+
+## Language And Writing
+
+- U korisničkim porukama, dokumentaciji i `.md` datotekama piši normalnim hrvatskim jezikom s dijakritikom: `č`, `ć`, `š`, `ž`, `đ`.
+- ASCII bez dijakritike koristi samo kad je tehnički nužan, npr. u kodu, nazivima varijabli, shell naredbama, konfiguracijskim ključevima ili kad postojeća datoteka izričito traži takav format.
