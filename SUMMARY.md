@@ -1,5 +1,5 @@
 # Table of contents
 
 * [minidepo.hr](README.md)
-* [AGENTS](AGENTS.md)
+* [AGENTS](agents.md)
 * [Faza 1 - Ograda parcele](FAZA1.md)
