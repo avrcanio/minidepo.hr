@@ -15,12 +15,12 @@
     roads: [],
     gates: [],
     selectedKind: null,
-    selectedGeometry: null,
     selectedObject: null,
     selectedOverlay: null,
     map: null,
-    drawingManager: null,
+    featureLayer: null,
     overlays: [],
+    drawControl: null,
   };
 
   function setStatus(text) {
@@ -28,7 +28,10 @@
   }
 
   function getCookie(name) {
-    const cookie = document.cookie.split(";").map((value) => value.trim()).find((value) => value.startsWith(`${name}=`));
+    const cookie = document.cookie
+      .split(";")
+      .map((value) => value.trim())
+      .find((value) => value.startsWith(`${name}=`));
     return cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : "";
   }
 
@@ -58,37 +61,52 @@
     }[status] || "#2563eb";
   }
 
+  function setSelectedOverlay(overlay, kind, feature) {
+    if (state.selectedOverlay && state.selectedOverlay !== overlay) {
+      disableEditing(state.selectedOverlay);
+    }
+    state.selectedOverlay = overlay;
+    state.selectedKind = kind;
+    state.selectedObject = feature || null;
+    enableEditing(overlay);
+    openFeatureForm(kind, feature);
+    renderUnits(kind === "container" ? feature : null);
+  }
+
   function clearOverlays() {
-    state.overlays.forEach((overlay) => overlay.setMap(null));
+    disableEditing(state.selectedOverlay);
+    state.selectedOverlay = null;
+    state.selectedObject = null;
+    state.selectedKind = null;
+    state.overlays.forEach((overlay) => state.featureLayer.removeLayer(overlay));
     state.overlays = [];
   }
 
-  function geometryToPath(geometry) {
-    if (geometry.type === "Polygon") {
-      return geometry.coordinates[0].map(([lng, lat]) => ({ lng, lat }));
+  function polygonLatLngsToGeometry(latlngs) {
+    const ring = latlngs[0].map((latlng) => [latlng.lng, latlng.lat]);
+    if (ring.length > 0) {
+      const first = ring[0];
+      const last = ring[ring.length - 1];
+      if (first[0] !== last[0] || first[1] !== last[1]) {
+        ring.push([first[0], first[1]]);
+      }
     }
-    if (geometry.type === "LineString") {
-      return geometry.coordinates.map(([lng, lat]) => ({ lng, lat }));
-    }
-    if (geometry.type === "Point") {
-      return { lng: geometry.coordinates[0], lat: geometry.coordinates[1] };
-    }
-    return null;
+    return { type: "Polygon", coordinates: [ring] };
   }
 
   function overlayToGeometry(kind, overlay) {
     if (kind === "parcel" || kind === "container") {
-      const path = overlay.getPath().getArray().map((point) => [point.lng(), point.lat()]);
-      path.push([path[0][0], path[0][1]]);
-      return { type: "Polygon", coordinates: [path] };
+      return polygonLatLngsToGeometry(overlay.getLatLngs());
     }
     if (kind === "road") {
-      const path = overlay.getPath().getArray().map((point) => [point.lng(), point.lat()]);
-      return { type: "LineString", coordinates: path };
+      return {
+        type: "LineString",
+        coordinates: overlay.getLatLngs().map((latlng) => [latlng.lng, latlng.lat]),
+      };
     }
     if (kind === "gate") {
-      const position = overlay.getPosition();
-      return { type: "Point", coordinates: [position.lng(), position.lat()] };
+      const latlng = overlay.getLatLng();
+      return { type: "Point", coordinates: [latlng.lng, latlng.lat] };
     }
     return null;
   }
@@ -114,12 +132,16 @@
       return;
     }
 
-    unitEditor.innerHTML = container.units.map((unit) => `
+    unitEditor.innerHTML = container.units
+      .map(
+        (unit) => `
       <div class="unit-card">
         <h3>${unit.code}</h3>
         <label>Status</label>
         <select data-unit-status="${unit.id}">
-          ${unitStatuses.map((status) => `<option value="${status.value}" ${status.value === unit.status ? "selected" : ""}>${status.label}</option>`).join("")}
+          ${unitStatuses
+            .map((status) => `<option value="${status.value}" ${status.value === unit.status ? "selected" : ""}>${status.label}</option>`)
+            .join("")}
         </select>
         <label>Površina (m2)</label>
         <input data-unit-area="${unit.id}" type="number" step="0.01" value="${unit.area_m2}">
@@ -127,7 +149,9 @@
         <textarea data-unit-notes="${unit.id}" rows="2">${unit.notes || ""}</textarea>
         <button type="button" data-unit-save="${unit.id}">Spremi jedinicu</button>
       </div>
-    `).join("");
+    `,
+      )
+      .join("");
 
     unitEditor.querySelectorAll("[data-unit-save]").forEach((button) => {
       button.addEventListener("click", async () => {
@@ -146,7 +170,7 @@
           unit.area_m2 = result.unit.area_m2;
           unit.notes = result.unit.notes;
           current.status = result.container_status;
-          reloadSiteData();
+          await reloadSiteData();
           setStatus("Jedinica spremljena");
         } catch (error) {
           setStatus(`Greška: ${error.message}`);
@@ -155,80 +179,97 @@
     });
   }
 
-  function attachOverlayEvents(overlay, kind, feature) {
-    const syncGeometry = () => {
-      if (state.selectedOverlay === overlay) {
-        state.selectedGeometry = overlayToGeometry(kind, overlay);
-      }
-    };
+  function enableEditing(overlay) {
+    if (overlay.editing && overlay.editing.enable) {
+      overlay.editing.enable();
+    }
+    if (overlay.dragging && overlay.dragging.enable) {
+      overlay.dragging.enable();
+    }
+  }
 
-    overlay.addListener("click", () => {
-      state.selectedKind = kind;
-      state.selectedObject = feature;
-      state.selectedOverlay = overlay;
-      syncGeometry();
-      openFeatureForm(kind, feature);
-      renderUnits(kind === "container" ? feature : null);
+  function disableEditing(overlay) {
+    if (!overlay) {
+      return;
+    }
+    if (overlay.editing && overlay.editing.disable) {
+      overlay.editing.disable();
+    }
+    if (overlay.dragging && overlay.dragging.disable) {
+      overlay.dragging.disable();
+    }
+  }
+
+  function attachOverlayEvents(overlay, kind, feature) {
+    overlay.on("click", () => {
+      setSelectedOverlay(overlay, kind, feature);
     });
-    if (overlay.setEditable) {
-      overlay.setEditable(true);
-    }
-    if (overlay.setDraggable && kind === "gate") {
-      overlay.setDraggable(true);
-    }
-    if (overlay.getPath) {
-      const path = overlay.getPath();
-      path.addListener("set_at", syncGeometry);
-      path.addListener("insert_at", syncGeometry);
-      path.addListener("remove_at", syncGeometry);
-    }
-    if (overlay.addListener && kind === "gate") {
-      overlay.addListener("dragend", syncGeometry);
-    }
+    overlay.on("edit", () => {
+      if (state.selectedOverlay === overlay) {
+        state.selectedObject = feature;
+      }
+    });
+    overlay.on("dragend", () => {
+      if (state.selectedOverlay === overlay) {
+        state.selectedObject = feature;
+      }
+    });
+  }
+
+  function pointToLatLng(geometry) {
+    return [geometry.coordinates[1], geometry.coordinates[0]];
+  }
+
+  function lineToLatLngs(geometry) {
+    return geometry.coordinates.map(([lng, lat]) => [lat, lng]);
+  }
+
+  function polygonToLatLngs(geometry) {
+    return geometry.coordinates[0].slice(0, -1).map(([lng, lat]) => [lat, lng]);
   }
 
   function drawFeature(feature, kind) {
     let overlay = null;
+
     if (kind === "parcel") {
-      overlay = new google.maps.Polygon({
-        paths: geometryToPath(feature.geometry),
-        strokeColor: "#0f766e",
+      overlay = L.polygon(polygonToLatLngs(feature.geometry), {
+        color: "#0f766e",
+        weight: 2,
         fillColor: "#67e8f9",
-        fillOpacity: 0.25,
-        map: state.map,
+        fillOpacity: 0.2,
       });
     } else if (kind === "container") {
-      overlay = new google.maps.Polygon({
-        paths: geometryToPath(feature.geometry),
-        strokeColor: statusColor(feature.status),
-        fillColor: statusColor(feature.status),
+      const color = statusColor(feature.status);
+      overlay = L.polygon(polygonToLatLngs(feature.geometry), {
+        color,
+        weight: 2,
+        fillColor: color,
         fillOpacity: 0.35,
-        map: state.map,
       });
     } else if (kind === "road") {
-      overlay = new google.maps.Polyline({
-        path: geometryToPath(feature.geometry),
-        strokeColor: "#374151",
-        strokeWeight: 4,
-        map: state.map,
+      overlay = L.polyline(lineToLatLngs(feature.geometry), {
+        color: "#374151",
+        weight: 4,
       });
     } else if (kind === "gate") {
-      overlay = new google.maps.Marker({
-        position: geometryToPath(feature.geometry),
-        map: state.map,
-        draggable: true,
-      });
+      overlay = L.marker(pointToLatLng(feature.geometry), { draggable: true });
     }
+
     if (!overlay) {
       return;
     }
+
+    overlay.featureKind = kind;
+    overlay.featureData = feature;
+    state.featureLayer.addLayer(overlay);
     state.overlays.push(overlay);
     attachOverlayEvents(overlay, kind, feature);
   }
 
   function updateParcelOptions() {
-    const options = ['<option value="">Odaberi parcelu</option>']
-      .concat(state.parcels.map((parcel) => `<option value="${parcel.id}">${parcel.code}</option>`));
+    const options = ['<option value="">Odaberi parcelu</option>'].concat(
+      state.parcels.map((parcel) => `<option value="${parcel.id}">${parcel.code}</option>`),
+    );
     parentSelect.innerHTML = options.join("");
   }
 
@@ -249,9 +290,9 @@
     state.containers.forEach((item) => drawFeature(item, "container"));
     state.roads.forEach((item) => drawFeature(item, "road"));
     state.gates.forEach((item) => drawFeature(item, "gate"));
-    const center = data.site.center || { lat: 45.815, lng: 15.9819 };
-    state.map.setCenter(center);
-    state.map.setZoom(data.site.center ? 18 : 7);
+
+    const center = data.site.center ? [data.site.center.lat, data.site.center.lng] : [45.815, 15.9819];
+    state.map.setView(center, data.site.center ? 18 : 7);
     setStatus("Slojevi učitani");
   }
 
@@ -260,22 +301,34 @@
       setStatus("Prvo odaberi lokaciju.");
       return;
     }
-    state.selectedKind = kind;
-    state.selectedObject = null;
+
+    disableEditing(state.selectedOverlay);
     state.selectedOverlay = null;
-    state.selectedGeometry = null;
+    state.selectedObject = null;
+    state.selectedKind = kind;
     renderUnits(null);
     openFeatureForm(kind);
-    let mode = null;
+
+    let drawer = null;
     if (kind === "parcel" || kind === "container") {
-      mode = google.maps.drawing.OverlayType.POLYGON;
+      drawer = new L.Draw.Polygon(state.map, {
+        shapeOptions: {
+          color: kind === "parcel" ? "#0f766e" : "#2563eb",
+          weight: 2,
+        },
+      });
     } else if (kind === "road") {
-      mode = google.maps.drawing.OverlayType.POLYLINE;
+      drawer = new L.Draw.Polyline(state.map, {
+        shapeOptions: { color: "#374151", weight: 4 },
+      });
     } else if (kind === "gate") {
-      mode = google.maps.drawing.OverlayType.MARKER;
+      drawer = new L.Draw.Marker(state.map);
     }
-    state.drawingManager.setDrawingMode(mode);
-    setStatus(`Crtanje: ${kind}`);
+
+    if (drawer) {
+      drawer.enable();
+      setStatus(`Crtanje: ${kind}`);
+    }
   }
 
   async function submitFeature(event) {
@@ -284,7 +337,7 @@
       setStatus("Odaberi lokaciju prije spremanja.");
       return;
     }
-    if (!state.selectedKind || (!state.selectedGeometry && !state.selectedOverlay)) {
+    if (!state.selectedKind || !state.selectedOverlay) {
       setStatus("Nacrtaj ili odaberi objekt na karti.");
       return;
     }
@@ -296,8 +349,8 @@
     const payload = {
       code,
       notes,
-      geometry: state.selectedOverlay ? overlayToGeometry(kind, state.selectedOverlay) : state.selectedGeometry,
-      site_id: state.siteId,
+      geometry: overlayToGeometry(kind, state.selectedOverlay),
+      site_id: Number(state.siteId),
     };
 
     if (kind === "container") {
@@ -337,27 +390,55 @@
   }
 
   async function init() {
-    state.map = new google.maps.Map(document.getElementById("map"), {
-      center: { lat: 45.815, lng: 15.9819 },
+    state.map = L.map("map", {
+      center: [45.815, 15.9819],
       zoom: 7,
-      mapTypeId: "satellite",
-      streetViewControl: false,
-      fullscreenControl: true,
+      zoomControl: true,
     });
 
-    state.drawingManager = new google.maps.drawing.DrawingManager({
-      drawingControl: false,
-      polygonOptions: { editable: true, draggable: false },
-      polylineOptions: { editable: true, draggable: false },
-      markerOptions: { draggable: true },
-    });
-    state.drawingManager.setMap(state.map);
+    const imagery = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: "Tiles &copy; Esri",
+        maxZoom: 20,
+      },
+    ).addTo(state.map);
 
-    google.maps.event.addListener(state.drawingManager, "overlaycomplete", (event) => {
-      state.drawingManager.setDrawingMode(null);
-      state.selectedGeometry = overlayToGeometry(state.selectedKind, event.overlay);
-      state.overlays.push(event.overlay);
-      attachOverlayEvents(event.overlay, state.selectedKind, {});
+    const labels = L.tileLayer(
+      "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        attribution: "Labels &copy; Esri",
+        maxZoom: 20,
+        pane: "overlayPane",
+      },
+    ).addTo(state.map);
+
+    const light = L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+      attribution: "&copy; CARTO",
+      subdomains: "abcd",
+      maxZoom: 20,
+    });
+
+    L.control.layers(
+      {
+        "Esri Satellite": imagery,
+        "Carto Light": light,
+      },
+      {
+        "Esri Labels": labels,
+      },
+      { position: "topright" },
+    ).addTo(state.map);
+
+    state.featureLayer = L.featureGroup().addTo(state.map);
+
+    state.map.on(L.Draw.Event.CREATED, (event) => {
+      const overlay = event.layer;
+      overlay.featureKind = state.selectedKind;
+      state.featureLayer.addLayer(overlay);
+      state.overlays.push(overlay);
+      attachOverlayEvents(overlay, state.selectedKind, {});
+      setSelectedOverlay(overlay, state.selectedKind, {});
       setStatus("Geometrija spremna. Unesi detalje i klikni Spremi objekt.");
     });
 
@@ -378,6 +459,8 @@
     } else {
       clearOverlays();
       updateParcelOptions();
+      siteMeta.textContent = "Odaberi lokaciju za učitavanje slojeva.";
+      state.map.setView([45.815, 15.9819], 7);
     }
   });
 
@@ -387,5 +470,5 @@
 
   form.addEventListener("submit", submitFeature);
 
-  window.initMinidepoMap = init;
+  window.addEventListener("load", init);
 })();

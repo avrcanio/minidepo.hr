@@ -18,6 +18,15 @@ body {
   color: var(--ink);
 }
 
+.leaflet-container {
+  font: inherit;
+}
+
+.leaflet-draw-toolbar a,
+.leaflet-control-layers-toggle {
+  border-radius: 10px;
+}
+
 .layout {
   display: grid;
   grid-template-columns: 360px 1fr;
