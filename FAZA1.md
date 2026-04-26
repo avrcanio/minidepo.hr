@@ -9,16 +9,22 @@ Prva faza projekta obuhvaca osnovno ogradivanje parcele `70/1` kako bi se lokaci
 - Parcela: `70/1`
 - Opseg parcele iz GIS geometrije: `651,32 m`
 - Raster stupova: `svakih 2,5 m`
+- Izvedba stupova: `zabijanje u zemlju, bez betoniranja`
+- Glavni kolni ulaz: `1 x dvokrilna vrata 4,0 m` (`2,0 m + 2,0 m`)
 
 ## Kolicinski izracun
 
 Na temelju opsega parcele i rastera stupova:
 
 - Potreban broj stupova: `261 kom`
-- Potrebna duzina pletiva: `651,32 m`
+- Potrebna duzina pletiva: `647,32 m`
 - Potreban broj paketa pletiva `25 m`: `27 pak`
 - Procjena pocincane zice `2,5 mm`: `79 kg`
 - Procjena spanera: `53 kom`
+
+Napomena:
+- Kod duzine pletiva odbijen je otvor za kolna vrata sirine `4,0 m`.
+- Broj stupova ostavljen je na `261 kom` kao radna procjena s ukljucenim zavrsetkom ograde i prihvatom vrata.
 
 ## Jedinicne cijene iz ponude
 
@@ -42,25 +48,29 @@ Napomena:
 - Kod zice je cijena preracunata na procijenjenu kolicinu `79 kg`.
 - Iznosi su gruba radna procjena za pripremu faze i ne ukljucuju sve dodatne stavke izvedbe.
 
-## Stavke koje jos nisu ukljucene
+## Stavke koje jos nisu cjenovno ukljucene
 
 U ovu fazu jos treba dodati:
 
 - kutne i zavrsne stupove ako trebaju biti jaci od standardnih
-- kolni ulaz / vrata
+- dvokrilna kolna vrata `4,0 m`
 - pjesacka vrata
-- betoniranje stupova
-- iskop rupa
-- montazu i zatezanje pletiva
+- rad zabijanja stupova, montaze i zatezanja pletiva
 - dodatni spojni i montazni pribor
 - rezervu materijala `5-10%`
+
+## Izvedbene pretpostavke faze
+
+- Stupovi se izvode zabijanjem u teren, bez betoniranja i bez klasicnog iskopa stopa.
+- Ograda ukljucuje jedan glavni kolni ulaz s dvokrilnim vratima ukupne sirine `4,0 m`.
+- Rad treba troskovnicki voditi odvojeno od materijala jer trenutno nemamo jedininicnu cijenu montaze.
 
 ## Preporuka za sljedeci korak
 
 Prije narudzbe:
 
 1. Provjeriti tocan broj lomova i kutova parcele.
-2. Definirati sirinu i poziciju glavnog kolnog ulaza.
+2. Potvrditi tocnu poziciju glavnog kolnog ulaza `4,0 m`.
 3. Razdvojiti troskovnik na:
    - materijal
    - rad
