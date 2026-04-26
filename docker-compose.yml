@@ -12,11 +12,21 @@ services:
     volumes:
       - ./media:/app/media
       - ./staticfiles:/app/staticfiles
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.minidepo.rule=Host(`minidepo.finestar.hr`)"
+      - "traefik.http.routers.minidepo.entrypoints=websecure"
+      - "traefik.http.routers.minidepo.tls=true"
+      - "traefik.http.routers.minidepo.tls.certresolver=cloudflare"
+      - "traefik.http.services.minidepo.loadbalancer.server.port=8000"
     networks:
       - postgis_net
+      - proxy
 
 networks:
   postgis_net:
     name: postgis
     external: true
-
+  proxy:
+    external: true

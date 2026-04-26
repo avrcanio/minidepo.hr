@@ -10,6 +10,7 @@ docker compose up -d web
 ```
 
 Aplikacija je dostupna na `http://127.0.0.1:8010/`.
+Kad je Traefik route aktivan, javni URL je `https://minidepo.finestar.hr/`.
 
 ## Prvi login
 
