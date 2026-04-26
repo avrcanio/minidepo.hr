@@ -1,0 +1,91 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Minidepo Backoffice</title>
+  <link rel="stylesheet" href="{% static 'core/backoffice.css' %}">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <p class="eyebrow">Minidepo</p>
+        <h1>GIS backoffice</h1>
+      </div>
+
+      <section class="panel">
+        <label for="site-select">Lokacija</label>
+        <select id="site-select">
+          <option value="">Odaberi lokaciju</option>
+        </select>
+        <p id="site-meta" class="muted">Odaberi lokaciju za učitavanje slojeva.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Alati</h2>
+        <div class="button-grid">
+          <button type="button" data-draw="parcel">Nova parcela</button>
+          <button type="button" data-draw="container">Novi kontejner</button>
+          <button type="button" data-draw="road">Novi put</button>
+          <button type="button" data-draw="gate">Novi ulaz</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Detalji objekta</h2>
+        <form id="feature-form">
+          <input type="hidden" id="feature-id">
+          <input type="hidden" id="feature-kind">
+          <label for="feature-code">Oznaka</label>
+          <input id="feature-code" type="text" required>
+
+          <label for="feature-parent">Parcela</label>
+          <select id="feature-parent"></select>
+
+          <label for="feature-size">Veličina</label>
+          <input id="feature-size" type="text" placeholder="40ft / 1/4 / 4/4">
+
+          <label for="feature-width">Širina puta (m)</label>
+          <input id="feature-width" type="number" step="0.01" min="0">
+
+          <label for="feature-gate-type">Tip ulaza</label>
+          <select id="feature-gate-type">
+            {% for item in gate_types %}
+            <option value="{{ item.value }}">{{ item.label }}</option>
+            {% endfor %}
+          </select>
+
+          <label for="feature-notes">Napomena</label>
+          <textarea id="feature-notes" rows="4"></textarea>
+
+          <button type="submit">Spremi objekt</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Jedinice kontejnera</h2>
+        <div id="unit-editor" class="muted">Odaberi kontejner za uređivanje jedinica.</div>
+      </section>
+    </aside>
+
+    <main class="canvas">
+      <div class="toolbar">
+        <span id="status-pill">Spremno</span>
+        <a href="/admin/" class="admin-link">Django admin</a>
+      </div>
+      <div id="map"></div>
+    </main>
+  </div>
+
+  {{ unit_statuses|json_script:"unit-statuses-data" }}
+  <script>
+    window.MINIDEPO_CONFIG = {
+      mapsApiKey: "{{ google_maps_api_key|escapejs }}"
+    };
+  </script>
+  <script src="{% static 'core/backoffice.js' %}"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key|urlencode }}&libraries=drawing&callback=initMinidepoMap"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+:root {
+  --sand: #efe5d2;
+  --ink: #1f2933;
+  --olive: #6a7b3d;
+  --clay: #b85c38;
+  --paper: #fcfaf5;
+  --line: #d8cdb8;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top, #fffaf0, #efe6d7 55%, #e2d2b9);
+  color: var(--ink);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  padding: 24px;
+  background: rgba(252, 250, 245, 0.92);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.brand h1,
+.panel h2 {
+  margin: 0 0 8px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--olive);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.panel {
+  margin-top: 20px;
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+input,
+select,
+textarea,
+button {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid #cbbfa8;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+button {
+  background: linear-gradient(135deg, var(--olive), #51622b);
+  color: #fff;
+  cursor: pointer;
+  border: none;
+  font-weight: 700;
+}
+
+button:hover {
+  filter: brightness(1.05);
+}
+
+.button-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.canvas {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+}
+
+#status-pill {
+  display: inline-flex;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(106, 123, 61, 0.14);
+  color: #42501f;
+  font-weight: 700;
+}
+
+.admin-link {
+  color: var(--clay);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+#map {
+  flex: 1;
+  min-height: 600px;
+  margin: 0 24px 24px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(31, 41, 51, 0.1);
+  box-shadow: 0 24px 50px rgba(31, 41, 51, 0.12);
+}
+
+.muted {
+  color: #667085;
+  font-size: 14px;
+}
+
+.unit-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 10px;
+  background: #fff;
+}
+
+.unit-card h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.unit-card button {
+  margin-top: 8px;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+  }
+
+  #map {
+    margin: 0 16px 16px;
+    min-height: 480px;
+  }
+}

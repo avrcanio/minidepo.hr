@@ -1,0 +1,22 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: minidepo_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "8010:8000"
+    volumes:
+      - ./media:/app/media
+      - ./staticfiles:/app/staticfiles
+    networks:
+      - postgis_net
+
+networks:
+  postgis_net:
+    name: postgis
+    external: true
+
