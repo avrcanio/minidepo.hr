@@ -1,8 +1,8 @@
 .env
+AGENTS.md
 __pycache__/
 *.py[cod]
 *.sqlite3
 /staticfiles/
 /media/
 .pytest_cache/
-
